@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keystroke Dynamics</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f9ff;
+            background-image:
+                radial-gradient(at 15% 20%, hsla(50, 100%, 80%, 0.3) 0px, transparent 50%),
+                radial-gradient(at 80% 30%, hsla(190, 100%, 85%, 0.3) 0px, transparent 50%),
+                radial-gradient(at 50% 85%, hsla(30, 100%, 85%, 0.3) 0px, transparent 50%);
+            color: #374151;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+            border-radius: 1rem;
+            padding: 2rem;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .input-field {
+            width: 100%;
+            margin-top: 0.5rem;
+            padding: 0.75rem 1rem;
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1.125rem;
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px #ec4899;
+            border-color: #ec4899;
+        }
+
+        .button {
+            display: block;
+            margin-top: 1.5rem;
+            margin-left: auto;
+            margin-right: auto;
+            max-width: 224px;
+            width: 100%;
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.2));
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            color: #374151;
+            text-shadow: 0 1px 1px rgba(255, 255, 255, 0.7);
+            text-align: center;
+        }
+
+        .button:hover:not(:disabled) {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.3));
+            box-shadow: 0 2px 8px 0 rgba(31, 38, 135, 0.15);
+        }
+
+        .button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* --- Typography --- */
+        .main-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            text-align: center;
+            color: rgba(0, 0, 0, 0.4);
+            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.9);
+            margin-bottom: 2rem;
+        }
+
+        .text-muted {
+            color: rgba(0, 0, 0, 0.6);
+            text-shadow: 0 1px 1px rgba(255, 255, 255, 0.8);
+            text-align: center;
+        }
+
+        .card h2 {
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .card label {
+            text-align: left;
+            display: block;
+            margin-top: 1rem;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .requirement-list {
+            text-align: left;
+            margin-top: 1rem;
+        }
+
+        .requirement-list li {
+            transition: color 0.3s ease;
+        }
+
+        .requirement-list .valid {
+            color: #16a34a;
+        }
+
+        .requirement-list .invalid {
+            color: #dc2626;
+        }
+
+        .progress-bar {
+            width: 100%;
+            background-color: #e5e7eb;
+            border-radius: 9999px;
+            height: 1rem;
+            margin-top: 0.5rem;
+            border: 1px solid #d1d5db;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            border-radius: 9999px;
+            transition: width 0.5s ease-in-out, background-color 0.5s ease-in-out;
+        }
+
+        .bg-green-500 {
+            background-color: #22c55e;
+        }
+
+        .bg-yellow-500 {
+            background-color: #eab308;
+        }
+
+        .bg-red-500 {
+            background-color: #ef4444;
+        }
+
+
+        /* --- styling for Mobile --- */
+        @media (max-width: 480px) {
+            body {
+                padding: 0.5rem;
+            }
+
+            .card {
+                padding: 1.5rem;
+            }
+
+            .main-title {
+                font-size: 1.25rem;
+            }
+
+            .card h2 {
+                font-size: 1.25rem;
+            }
+
+            .button {
+                padding: 0.75rem 1rem;
+                font-size: 0.875rem;
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="w-full mx-auto space-y-6 flex flex-col items-center">
+        <h1 class="main-title">Keystroke Dynamics Authentication</h1>
+
+        <div class="card">
+            <div id="user-management-section" class="hidden">
+                <h2 class="text-xl md:text-2xl font-bold text-gray-700 text-center">User Identification</h2>
+                <div class="mt-4">
+                    <label for="username-input" class="text-sm font-medium text-gray-700">Please enter your
+                        username:</label>
+                    <input type="text" id="username-input" class="input-field" placeholder="e.g., SpidySense">
+                    <p id="username-error" class="text-xs text-red-600 mt-1 hidden">Username is required.</p>
+                </div>
+                <div class="flex justify-center mt-6">
+                    <button id="login-button" class="button w-52 text-lg">Login / Register</button>
+                </div>
+            </div>
+
+            <div id="enrollment-workflow" class="hidden">
+                <div id="registration-section">
+                    <h2 id="step-title" class="text-xl md:text-2xl font-bold text-gray-700"></h2>
+                    <p id="step-instruction" class="text-muted mt-2"></p>
+                    <div class="mt-4">
+                        <label for="password-input" id="password-label"
+                            class="text-sm font-medium text-gray-700"></label>
+                        <input type="password" id="password-input" class="input-field"
+                            placeholder="Enter your password...">
+                        <input type="password" id="confirm-password-input" class="input-field hidden"
+                            placeholder="Confirm your password...">
+                        <p id="confirm-error-message" class="text-xs text-red-600 mt-1 hidden">Passwords do not match.
+                        </p>
+                        <p class="text-xs text-center text-red-600 mt-2">Please type manually. Using autofill will cause
+                            verification to fail.</p>
+                    </div>
+                    <div id="password-requirements" class="mt-4 text-sm">
+                        <p class="font-semibold">Requirements:</p>
+                        <ul class="list-disc list-inside requirement-list">
+                            <li id="req-length">At least 8 characters</li>
+                            <li id="req-uppercase">At least one uppercase letter</li>
+                            <li id="req-lowercase">At least one lowercase letter</li>
+                            <li id="req-number">At least one number</li>
+                            <li id="req-special">At least one special character (!@#$%^&*)</li>
+                        </ul>
+                    </div>
+                </div>
+                <div id="biometric-section" class="hidden">
+                    <h2 class="text-xl md:text-2xl font-bold text-gray-700">Step 3: Biometric Capture</h2>
+                    <p class="text-muted mt-2">To capture your unique typing rhythm, please type your password 3 times.
+                    </p>
+                    <div class="mt-4">
+                        <label for="biometric-input" class="text-sm font-medium text-gray-700">Type your
+                            password:</label>
+                        <div id="password-to-type"
+                            class="mt-1 font-mono text-cyan-700 font-semibold text-lg p-3 bg-white/50 rounded-lg border border-gray-200">
+                        </div>
+                        <input type="password" id="biometric-input" class="input-field"
+                            placeholder="Retype your password here...">
+                        <p id="biometric-error-message" class="text-xs text-red-600 mt-1 hidden">Password does not
+                            match. Please try again.</p>
+                        <p id="biometric-status" class="text-center font-semibold mt-4 text-pink-600"></p>
+                    </div>
+                </div>
+                <div id="completion-message" class="hidden text-center">
+                    <h2 class="text-2xl font-bold text-green-600">Enrollment Complete!</h2>
+                    <p class="text-muted mt-2">You can now log out and sign in with your new credentials.</p>
+                </div>
+                <div id="enrollment-buttons" class="flex justify-center mt-6">
+                    <button id="proceed-button" class="button w-52 text-lg" disabled>Proceed</button>
+                </div>
+            </div>
+
+            <div id="verification-workflow" class="hidden">
+                <h2 id="verification-title" class="text-xl md:text-2xl font-bold text-gray-700">Verification Required
+                </h2>
+                <div id="verification-form">
+                    <p class="text-muted mt-2">Please type your password to log in.</p>
+                    <div class="mt-4">
+                        <label for="verification-input" class="text-sm font-medium text-gray-700">Password:</label>
+                        <input type="password" id="verification-input" class="input-field"
+                            placeholder="Enter your password...">
+                        <p class="text-xs text-center text-red-600 mt-2">Please type manually. Using autofill will cause
+                            verification to fail.</p>
+                    </div>
+                    <div class="flex justify-center mt-6">
+                        <button id="verify-button" class="button w-52 text-lg">Verify</button>
+                    </div>
+                </div>
+                <div id="verification-result" class="hidden text-center mt-4 p-4 rounded-lg"></div>
+            </div>
+            <button id="logout-button" class="button mt-6 hidden">Log Out</button>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDDyNfPU9YCGG_ocTe3t1ksaxzGhD_meKQ",
+            authDomain: "keystroke-dynamics-723e3.firebaseapp.com",
+            projectId: "keystroke-dynamics-723e3",
+            storageBucket: "keystroke-dynamics-723e3.firebasestorage.app",
+            messagingSenderId: "40866467958",
+            appId: "1:40866467958:web:3d9187a89b37cf41fa4f57"
+        };
+        const REQUIRED_SAMPLES = 3;
+        const VERIFICATION_THRESHOLD = 2;
+        const IGNORED_KEYS = ['Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'Tab', 'Enter', 'Backspace', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Escape', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'F11', 'F12'];
+
+        let state = 'LOGIN';
+        let currentUser = null;
+        let userPassword = null;
+        let biometricSamples = 0;
+        let keyEvents = [];
+        let keydownTimestamps = {};
+        let enrollmentFeatureSamples = [];
+        let db;
+
+        const userManagementSection = document.getElementById('user-management-section');
+        const usernameInput = document.getElementById('username-input');
+        const usernameError = document.getElementById('username-error');
+        const loginButton = document.getElementById('login-button');
+        const logoutButton = document.getElementById('logout-button');
+        const enrollmentWorkflow = document.getElementById('enrollment-workflow');
+        const registrationSection = document.getElementById('registration-section');
+        const biometricSection = document.getElementById('biometric-section');
+        const completionMessage = document.getElementById('completion-message');
+        const enrollmentButtons = document.getElementById('enrollment-buttons');
+        const passwordInput = document.getElementById('password-input');
+        const confirmPasswordInput = document.getElementById('confirm-password-input');
+        const confirmErrorMessage = document.getElementById('confirm-error-message');
+        const biometricInput = document.getElementById('biometric-input');
+        const biometricErrorMessage = document.getElementById('biometric-error-message');
+        const proceedButton = document.getElementById('proceed-button');
+        const stepTitle = document.getElementById('step-title');
+        const stepInstruction = document.getElementById('step-instruction');
+        const passwordLabel = document.getElementById('password-label');
+        const passwordRequirements = document.getElementById('password-requirements');
+        const passwordToType = document.getElementById('password-to-type');
+        const biometricStatus = document.getElementById('biometric-status');
+        const reqs = { length: document.getElementById('req-length'), uppercase: document.getElementById('req-uppercase'), lowercase: document.getElementById('req-lowercase'), number: document.getElementById('req-number'), special: document.getElementById('req-special') };
+        const verificationWorkflow = document.getElementById('verification-workflow');
+        const verificationTitle = document.getElementById('verification-title');
+        const verificationForm = document.getElementById('verification-form');
+        const verificationInput = document.getElementById('verification-input');
+        const verifyButton = document.getElementById('verify-button');
+        const verificationResult = document.getElementById('verification-result');
+
+        // --- INITIALIZATION ---
+        async function initialize() {
+            try {
+                firebase.initializeApp(firebaseConfig);
+                db = firebase.firestore();
+                await firebase.auth().signInAnonymously();
+                showScreen('login');
+            } catch (error) {
+                console.error("Firebase initialization failed:", error);
+            }
+
+            // Attach all event listeners
+            loginButton.addEventListener('click', handleLogin);
+            logoutButton.addEventListener('click', handleLogout);
+            proceedButton.addEventListener('click', handleEnrollmentProceed);
+            verifyButton.addEventListener('click', verifyIdentity);
+
+            usernameInput.addEventListener('input', () => usernameError.classList.add('hidden'));
+            passwordInput.addEventListener('input', validatePassword);
+            confirmPasswordInput.addEventListener('input', validatePasswordConfirmation);
+            biometricInput.addEventListener('input', () => biometricErrorMessage.classList.add('hidden'));
+
+            const inputs = [passwordInput, confirmPasswordInput, biometricInput, verificationInput];
+            inputs.forEach(input => {
+                input.addEventListener('keydown', handleKeydown);
+                input.addEventListener('keyup', handleKeyup);
+            });
+
+            usernameInput.addEventListener('keyup', (e) => { if (e.key === 'Enter') loginButton.click(); });
+            confirmPasswordInput.addEventListener('keyup', (e) => { if (e.key === 'Enter') proceedButton.click(); });
+            verificationInput.addEventListener('keyup', (e) => { if (e.key === 'Enter') verifyButton.click(); });
+
+            usernameInput.focus();
+        }
+
+        // --- MAIN WORKFLOW & STATE MANAGEMENT ---
+
+        async function handleLogin() {
+            const username = usernameInput.value.trim().toLowerCase();
+            if (!username) {
+                usernameError.classList.remove('hidden');
+                return;
+            }
+            currentUser = username;
+
+            const userDoc = await db.collection('users').doc(currentUser).get();
+
+            if (userDoc.exists) {
+                startVerification();
+            } else {
+                startEnrollment();
+            }
+        }
+
+        function startEnrollment() {
+            state = 'ENROLL_REGISTRATION';
+            showScreen('enrollment');
+        }
+
+        function startVerification() {
+            state = 'VERIFICATION';
+            verificationTitle.textContent = `Welcome back, ${currentUser}!`;
+            showScreen('verification');
+        }
+
+        function handleEnrollmentProceed() {
+            if (state === 'ENROLL_REGISTRATION') processRegistrationStep();
+            else if (state === 'ENROLL_CONFIRMATION') processConfirmationStep();
+            else if (state === 'ENROLL_BIOMETRIC') processBiometricSample();
+        }
+
+        function processRegistrationStep() {
+            userPassword = passwordInput.value;
+            state = 'ENROLL_CONFIRMATION';
+            updateEnrollmentUI();
+            confirmPasswordInput.focus();
+        }
+
+        function processConfirmationStep() {
+            if (userPassword === confirmPasswordInput.value) {
+                state = 'ENROLL_BIOMETRIC';
+                updateEnrollmentUI();
+                clearTypingData();
+                biometricInput.focus();
+            } else {
+                confirmPasswordInput.value = '';
+                confirmErrorMessage.classList.remove('hidden');
+            }
+        }
+
+        function processBiometricSample() {
+            if (biometricInput.value !== userPassword) {
+                biometricErrorMessage.classList.remove('hidden');
+                biometricInput.value = '';
+                return;
+            }
+
+            const features = extractFeatures();
+            if (!features) {
+                biometricErrorMessage.textContent = "Not enough typing data. Please type the full password again.";
+                biometricErrorMessage.classList.remove('hidden');
+                clearTypingData();
+                return;
+            }
+            enrollmentFeatureSamples.push(features);
+            biometricSamples++;
+
+            if (biometricSamples >= REQUIRED_SAMPLES) {
+                createProfile();
+            } else {
+                biometricStatus.textContent = `Sample ${biometricSamples + 1} of ${REQUIRED_SAMPLES} recorded. Please type again.`;
+                clearTypingData();
+            }
+        }
+
+        function handleLogout() {
+            state = 'LOGIN';
+            currentUser = null;
+            userPassword = null;
+            biometricSamples = 0;
+            enrollmentFeatureSamples = [];
+            clearTypingData();
+            resetUIForLogout();
+            showScreen('login');
+        }
+
+        // --- UI HELPER FUNCTIONS ---
+
+        function showScreen(screenName) {
+            userManagementSection.classList.add('hidden');
+            enrollmentWorkflow.classList.add('hidden');
+            verificationWorkflow.classList.add('hidden');
+            logoutButton.classList.add('hidden');
+
+            switch (screenName) {
+                case 'login': userManagementSection.classList.remove('hidden'); usernameInput.focus(); break;
+                case 'enrollment': enrollmentWorkflow.classList.remove('hidden'); logoutButton.classList.remove('hidden'); updateEnrollmentUI(); break;
+                case 'verification': verificationWorkflow.classList.remove('hidden'); logoutButton.classList.remove('hidden'); verificationInput.focus(); break;
+            }
+        }
+
+        function updateEnrollmentUI() {
+            if (state === 'ENROLL_REGISTRATION') {
+                registrationSection.classList.remove('hidden');
+                biometricSection.classList.add('hidden');
+                completionMessage.classList.add('hidden');
+                enrollmentButtons.classList.remove('hidden');
+                stepTitle.textContent = 'Step 1: Create a Secure Password';
+                stepInstruction.textContent = 'Please choose a strong password that meets the requirements below.';
+                passwordLabel.textContent = 'Password:';
+                passwordInput.classList.remove('hidden');
+                confirmPasswordInput.classList.add('hidden');
+                passwordRequirements.classList.remove('hidden');
+            } else if (state === 'ENROLL_CONFIRMATION') {
+                stepTitle.textContent = 'Step 2: Confirm Your Password';
+                stepInstruction.textContent = 'Please type your password again to confirm.';
+                passwordLabel.textContent = 'Confirm Password:';
+                passwordInput.classList.add('hidden');
+                confirmPasswordInput.classList.remove('hidden');
+                passwordRequirements.classList.add('hidden');
+                proceedButton.disabled = true;
+            } else if (state === 'ENROLL_BIOMETRIC') {
+                registrationSection.classList.add('hidden');
+                biometricSection.classList.remove('hidden');
+                passwordToType.textContent = userPassword.split('').map(() => '•').join('');
+                biometricStatus.textContent = `Please provide sample 1 of ${REQUIRED_SAMPLES}.`;
+                proceedButton.textContent = "Add Sample";
+            } else if (state === 'ENROLL_COMPLETE') {
+                registrationSection.classList.add('hidden');
+                biometricSection.classList.add('hidden');
+                enrollmentButtons.classList.add('hidden');
+                completionMessage.classList.remove('hidden');
+            }
+        }
+
+        function resetUIForLogout() {
+            usernameInput.value = '';
+            passwordInput.value = '';
+            confirmPasswordInput.value = '';
+            biometricInput.value = '';
+            verificationInput.value = '';
+            verificationResult.classList.add('hidden');
+            verificationForm.classList.remove('hidden');
+            usernameError.classList.add('hidden');
+            confirmErrorMessage.classList.add('hidden');
+            biometricErrorMessage.classList.add('hidden');
+            updateEnrollmentUI('ENROLL_REGISTRATION');
+        }
+
+        function validatePassword() {
+            const pass = passwordInput.value;
+            let allValid = true;
+            const validations = {
+                length: pass.length >= 8,
+                uppercase: /[A-Z]/.test(pass),
+                lowercase: /[a-z]/.test(pass),
+                number: /[0-9]/.test(pass),
+                special: /[!@#$%^&*]/.test(pass)
+            };
+            for (const key in validations) {
+                if (!validations[key]) allValid = false;
+                reqs[key].classList.toggle('valid', validations[key]);
+                reqs[key].classList.toggle('invalid', !validations[key]);
+            }
+            proceedButton.disabled = !allValid;
+        }
+
+        function validatePasswordConfirmation() {
+            const passwordsMatch = userPassword === confirmPasswordInput.value;
+            proceedButton.disabled = !passwordsMatch;
+            confirmErrorMessage.classList.toggle('hidden', passwordsMatch);
+        }
+
+        function clearTypingData() {
+            if (state === 'ENROLL_BIOMETRIC') biometricInput.value = '';
+            if (state === 'VERIFICATION') verificationInput.value = '';
+            if (state === 'ENROLL_BIOMETRIC') biometricInput.focus();
+            if (state === 'VERIFICATION') verificationInput.focus();
+            keyEvents = [];
+            keydownTimestamps = {};
+        }
+
+        // --- KEYSTROKE CAPTURE & BIOMETRIC LOGIC ---
+        function handleKeydown(event) {
+            if (event.repeat || IGNORED_KEYS.includes(event.key)) {
+                return;
+            }
+            const timestamp = performance.now();
+            keydownTimestamps[event.key] = timestamp;
+            keyEvents.push({ type: 'keydown', key: event.key, timestamp });
+        }
+
+        function handleKeyup(event) {
+            if (IGNORED_KEYS.includes(event.key) || !keydownTimestamps[event.key]) return;
+            const timestamp = performance.now();
+            const dwellTime = timestamp - keydownTimestamps[event.key];
+            keyEvents.push({ type: 'keyup', key: event.key, timestamp, dwellTime });
+            delete keydownTimestamps[event.key];
+        }
+
+        function extractFeatures() {
+            if (keyEvents.length < 2) return null;
+            const features = { dwellTimes: {}, flightTimes: {} };
+            const keyupEvents = keyEvents.filter(e => e.type === 'keyup');
+            const keydownEvents = keyEvents.filter(e => e.type === 'keydown');
+
+            keyupEvents.forEach(event => {
+                if (!features.dwellTimes[event.key]) features.dwellTimes[event.key] = [];
+                features.dwellTimes[event.key].push(event.dwellTime);
+            });
+
+            for (let i = 0; i < keydownEvents.length - 1; i++) {
+                const firstKey = keydownEvents[i];
+                const secondKey = keydownEvents[i + 1];
+                const digraph = `${firstKey.key}-${secondKey.key}`;
+                const firstKeyUpEvent = keyupEvents.find(e => e.timestamp > firstKey.timestamp && e.key === firstKey.key);
+                if (firstKeyUpEvent) {
+                    const flightTime = secondKey.timestamp - firstKeyUpEvent.timestamp;
+                    if (!features.flightTimes[digraph]) features.flightTimes[digraph] = [];
+                    features.flightTimes[digraph].push(flightTime);
+                }
+            }
+            return features;
+        }
+
+        async function createProfile() {
+            const profile = createBiometricProfile(enrollmentFeatureSamples);
+            const profileData = { password: userPassword, profile: profile };
+
+            await db.collection('users').doc(currentUser).set(profileData);
+            state = 'ENROLL_COMPLETE';
+            updateEnrollmentUI();
+        }
+
+        function createBiometricProfile(samples) {
+            const featureValues = { dwellTimes: {}, flightTimes: {} };
+            for (const sample of samples) {
+                for (const key in sample.dwellTimes) {
+                    if (!featureValues.dwellTimes[key]) featureValues.dwellTimes[key] = [];
+                    featureValues.dwellTimes[key].push(...sample.dwellTimes[key]);
+                }
+                for (const digraph in sample.flightTimes) {
+                    if (!featureValues.flightTimes[digraph]) featureValues.flightTimes[digraph] = [];
+                    featureValues.flightTimes[digraph].push(...sample.flightTimes[digraph]);
+                }
+            }
+
+            const profile = { dwellTimes: {}, flightTimes: {} };
+            for (const key in featureValues.dwellTimes) {
+                const values = featureValues.dwellTimes[key];
+                const mean = calculateMean(values);
+                profile.dwellTimes[key] = { mean, stdDev: calculateStdDev(values, mean) };
+            }
+            for (const digraph in featureValues.flightTimes) {
+                const values = featureValues.flightTimes[digraph];
+                const mean = calculateMean(values);
+                profile.flightTimes[digraph] = { mean, stdDev: calculateStdDev(values, mean) };
+            }
+            return profile;
+        }
+
+        async function verifyIdentity() {
+            const userDoc = await db.collection('users').doc(currentUser).get();
+            const user = userDoc.data();
+            const typedPassword = verificationInput.value;
+
+            if (user.password !== typedPassword) {
+                displayVerificationResult(false, { message: "Incorrect password." });
+                return;
+            }
+
+            const testFeatures = extractFeatures();
+            if (!testFeatures) {
+                displayVerificationResult(false, { message: "Not enough typing data to analyze." });
+                return;
+            }
+
+            const result = verifyBiometricProfile(testFeatures, user.profile);
+            displayVerificationResult(result.success, result.data);
+
+            if (!result.success) {
+                setTimeout(() => {
+                    verificationInput.value = '';
+                    clearTypingData();
+                }, 3000);
+            }
+        }
+
+        function verifyBiometricProfile(testFeatures, userProfile) {
+            let zScores = [];
+            for (const key in testFeatures.dwellTimes) {
+                if (userProfile.dwellTimes[key]) {
+                    const profileFeature = userProfile.dwellTimes[key];
+                    const stdDev = Math.max(profileFeature.stdDev, 5);
+                    testFeatures.dwellTimes[key].forEach(testTime => {
+                        const zScore = Math.abs((testTime - profileFeature.mean) / stdDev);
+                        zScores.push(zScore);
+                    });
+                }
+            }
+            for (const digraph in testFeatures.flightTimes) {
+                if (userProfile.flightTimes[digraph]) {
+                    const profileFeature = userProfile.flightTimes[digraph];
+                    const stdDev = Math.max(profileFeature.stdDev, 5);
+                    testFeatures.flightTimes[digraph].forEach(testTime => {
+                        const zScore = Math.abs((testTime - profileFeature.mean) / stdDev);
+                        zScores.push(zScore);
+                    });
+                }
+            }
+            if (zScores.length < 5) {
+                return { success: false, data: { message: "Typing pattern too short to verify." } };
+            }
+            const finalScore = calculateMedian(zScores);
+            const isSuccess = finalScore <= VERIFICATION_THRESHOLD;
+            return { success: isSuccess, data: { score: finalScore } };
+        }
+
+        function displayVerificationResult(isSuccess, data) {
+            verificationResult.classList.remove('hidden');
+            const maxScoreForBar = VERIFICATION_THRESHOLD * 2;
+            const barPercentage = data.score ? Math.min((data.score / maxScoreForBar) * 100, 100) : 0;
+            let barColorClass = 'bg-green-500';
+            if (data.score > VERIFICATION_THRESHOLD * 0.75) barColorClass = 'bg-yellow-500';
+            if (data.score > VERIFICATION_THRESHOLD) barColorClass = 'bg-red-500';
+
+            if (isSuccess) {
+                verificationForm.classList.add('hidden');
+                verificationResult.style.backgroundColor = 'rgba(74, 222, 128, 0.2)';
+                verificationResult.innerHTML = `<h3 class="text-2xl font-bold text-green-700">Access Granted</h3><p class="text-gray-600 mt-2">Status: Logged In</p><p class="text-sm mt-4">Dissimilarity Score: <span class="font-mono text-xl text-gray-800">${data.score.toFixed(2)}</span> (Threshold: ${VERIFICATION_THRESHOLD})</p><div class="progress-bar"><div class="progress-bar-fill ${barColorClass}" style="width: ${barPercentage}%"></div></div>`;
+            } else {
+                verificationResult.style.backgroundColor = 'rgba(248, 113, 113, 0.2)';
+                verificationResult.innerHTML = `<h3 class="text-2xl font-bold text-red-700">Access Denied</h3><p class="text-gray-600 mt-2">${data.message || 'Biometric pattern does not match.'}</p>${data.score ? `<p class="text-sm mt-4">Dissimilarity Score: <span class="font-mono text-xl text-gray-800">${data.score.toFixed(2)}</span> (Threshold: ${VERIFICATION_THRESHOLD})</p><div class="progress-bar"><div class="progress-bar-fill ${barColorClass}" style="width: ${barPercentage}%"></div></div>` : ''}`;
+            }
+        }
+
+        // --- STATISTICAL UTILITIES ---
+        function calculateMean(arr) { return arr.reduce((a, b) => a + b, 0) / arr.length; }
+
+        function calculateMedian(arr) {
+            if (arr.length === 0) return 0;
+            const sorted = arr.slice().sort((a, b) => a - b);
+            const mid = Math.floor(sorted.length / 2);
+            return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+        }
+
+        function calculateStdDev(arr, mean) {
+            if (arr.length < 2) return 0;
+            const squaredDeviations = arr.map(value => Math.pow(value - mean, 2));
+            const sumOfSquaredDeviations = squaredDeviations.reduce((sum, value) => sum + value, 0);
+            const variance = sumOfSquaredDeviations / (arr.length - 1);
+            return Math.sqrt(variance);
+        }
+        
+        initialize();
+    </script>
+</body>
+
+</html>
